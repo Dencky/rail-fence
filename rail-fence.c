@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 {
     int opt;
     bool encrypt = false, decrypt = false;
-    char* file_in = NULL,* file_out = NULL;
+    char* file_in = NULL,* file_out = NULL,* input_text = NULL;
     int rails = 4;
     
     while ((opt = getopt(argc, argv, "def:o:r:")) != -1)
@@ -43,6 +43,44 @@ int main(int argc, char* argv[])
             return EXIT_FAILURE;
         }
     }
+
+    if ((encrypt && decrypt) || (!encrypt && !decrypt)){
+        printUsage(argv);
+        return EXIT_FAILURE;
+    }
+
+    if (file_in)
+    {
+        FILE* in = fopen(file_in, "r");
+        if (!in)
+        {
+            perror("fopen");
+            return EXIT_FAILURE;
+        }
+
+        fseek(in, 0, SEEK_END);
+        long size = ftell(in);
+        rewind(in);
+
+        input_text = (char*) calloc(size + 1, sizeof(char));
+        if (!input_text)
+        {
+            perror("calloc");
+            fclose(in);
+            return EXIT_FAILURE;
+        }
+
+        fread(input_text, sizeof(char), size, in);
+        fclose(in);
+        
+    }else{
+        if (optind >= argc)
+        {
+            printUsage(argv);
+            return EXIT_FAILURE;
+        }
+        input_text = argv[optind];
+    }
     
-    return 0;
+    return EXIT_SUCCESS;
 }
