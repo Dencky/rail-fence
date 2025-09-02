@@ -77,6 +77,14 @@ void decryption(const char* input_text, char* output_text, int rails, int size) 
     free(rowPos);
 }
 
+void freeInAndOut(char* input_text, char* output_text, char* file_in){
+    if (file_in)
+    {
+        free(input_text);
+    }
+    free(output_text);
+}
+
 int main(int argc, char* argv[])
 {
     int opt;
@@ -172,13 +180,24 @@ int main(int argc, char* argv[])
         decryption(input_text, output_text, rails, size);
     }
 
-    printf("%s", output_text);
-
-    if (file_in)
+    if (file_out)
     {
-        free(input_text);
+        FILE* out = fopen(file_out, "w");
+        if (!out)
+        {
+            perror("fopen");
+            freeInAndOut(input_text, output_text, file_in);
+            return EXIT_FAILURE;
+        }
+
+        fwrite(output_text, sizeof(char), size, out);
+        fclose(out);
+        
+    }else{
+        printf("%s", output_text);
     }
-    free(output_text);
+
+    freeInAndOut(input_text, output_text, file_in);
     
     return EXIT_SUCCESS;
 }
